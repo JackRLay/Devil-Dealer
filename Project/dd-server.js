@@ -119,12 +119,16 @@ var img =   ["1","2","3","4"
              }
 
             function NextDealer(){
+                console.log("called")
+                nextDealer= players[dealerPos-1];
+                PLAYER_LIST[nextDealer].role="player";
+                //reset incorrect guesses count
+                incorrectGuesses=0;
+                //if only two players are in the game
+                if(players.length==2){
+                PLAYER_LIST[nextDealer].role="guesser";
+                }
                 //if the dealer position is the last player
-                console.log(players);
-                console.log(PLAYER_LIST);
-                console.log(dealerPos);
-                PLAYER_LIST[dealerPos].role="guesser";
-
                 if (dealerPos==players.length)
                 {
                     dealerPos=1;
@@ -132,58 +136,71 @@ var img =   ["1","2","3","4"
                 else{
                     dealerPos++
                 }
-                nextDealer= players[dealerPos];
+                nextDealer= players[dealerPos-1];
                 console.log(nextDealer)
-                PLAYER_LIST[dealerPos].role="dealer";
+                PLAYER_LIST[nextDealer].role="dealer";
                 io.emit("playerChange",{players:players,guesserPos:guesserPos,dealerPos:dealerPos})
                 
             }
             
             function NextGuesser(){
-                PLAYER_LIST[guesserPos].role="player";
+                
                 console.log("changeguesser")
                 //code for selecting next guesser
-                       //if there are more than 2 players a new guesser is chosen. Else the guesser remains the same
+                //if there are more than 2 players a new guesser is chosen. Else the guesser remains the same until the dealer changes
+                       
                        if (players.length>2)
                        {
-            
-                       //if the guesser is second to last player
-                       if (guesserPos==players.length-1){
-                            console.log("decision 1")
-                           //if the next position is the dealer we want to skip them
-                           if((guesserPos++)==dealerPos)
-                           {
-                               guesserPos=1;
-                               console.log("decision 2")
-                           }
-                           else{
-                               guesserPos++;
-                               console.log("decision 3")
-                           }
-            
-                       }
-                       //if guesser is last player
-                       else if (guesserPos==players.length){
-                       console.log("decision 4")
-                           //if dealer is in pos 1
-                           if (dealerPos==1)
-                           {
-                               guesserPos==2;
-                               console.log("decision 5")
-                           }
-                           else{
-                               guesserPos=1;
-                               console.log("decision 6")
-                           }
-                        }
-                        else{
-                            if ((guesserPos++)==dealerPos){
-                                guesserPos=guesserPos+2;
-                                console.log("decision 7")
+                            if (guesserPos!=dealerPos){
+                                nextGuess=players[guesserPos-1];
+                                PLAYER_LIST[nextGuess].role="player";
+                            }
+
+                           console.log("FIRST: "+guesserPos)
+                           var tempGuesser= guesserPos;
+                           console.log(dealerPos);
+                           nextGuess=players[guesserPos-1];
+
+                        
+
+                        //if guesser is second to last player
+                        if (tempGuesser==players.length-1){
+                            //if dealer is in last position skip them
+                            if((tempGuesser++)==dealerPos)
+                            {
+                                guesserPos=1;
+                                console.log("A")
                             }
                             else{
+                                //else just increment
                                 guesserPos++;
-                                console.log("decision 8")
+                                console.log("B")
+                            }
+                        }
+                        
+                        //if guesser is last player in cicle
+                        else if (tempGuesser==players.length){
+                            //check if dealer is in position 1
+                            if (dealerPos==1)
+                            {
+                                guesserPos=2;
+                                console.log("C")
+                            }
+                            else{
+                                guesserPos=1;
+                                console.log("D")
+                            }
+                        }            
+                
+                        else{
+                            if ((tempGuesser+1)==dealerPos){
+                                guesserPos=guesserPos+2;
+                                console.log("E")
+                            }
+                            else{
+                                console.log("F")
+                                guesserPos++;
+                                
                             }
                         }
             
@@ -191,12 +208,13 @@ var img =   ["1","2","3","4"
 
                         console.log("guesser pos: " +guesserPos)
                         
-                        nextGuess=players[guesserPos]-1;
+                        nextGuess=players[guesserPos-1];
                         console.log("nextguess: " +nextGuess)
 
                         PLAYER_LIST[nextGuess].role="guesser";
                         
                         console.log(PLAYER_LIST[nextGuess].role);
+                        io.emit("playerChange",{players:players,guesserPos:guesserPos,dealerPos:dealerPos})
                     }
             }    
 
@@ -295,7 +313,7 @@ io.sockets.on('connection', function(socket){
     })
 
     socket.on('guess', function(data){
-        
+
         if (PLAYER_LIST[socket.id].role=="guesser"&&nextGo==false&&gameOver==false){
         console.log(data.text);
         
@@ -412,11 +430,13 @@ io.sockets.on('connection', function(socket){
             //if third incorrect guess in row change dealer
             if (incorrectGuesses==3)
             {
+                
                 //PLAYER_LIST[dealerPos-1].role="player";
                 console.log("changed dealer")
                 NextDealer();
+                
             }
-
+            NextGuesser();
         }
     }
 
@@ -451,14 +471,16 @@ io.sockets.on('connection', function(socket){
                 }
             }
             
+            NextGuesser();
+
             drinker=players[dealerPos-1];
             io.emit("drinks",{drinksNum:numDrinks, drinker:drinker})
 
             io.emit('gotIt',{currentCard:currentCard, currentImg:currentImg});
-            validInput=false;
+            
            
     }
-    NextGuesser();
+    
 }   
             if(validInput==false){
                   socket.emit("badInput",{input:data.text});
@@ -470,6 +492,7 @@ io.sockets.on('connection', function(socket){
             socket.emit("notYourGo",{role:thisRole})
             
         }
+        
         io.emit("update");
     })
 
@@ -485,21 +508,7 @@ io.sockets.on('connection', function(socket){
     socket.on("getNextCard",function(){
         if ((PLAYER_LIST[socket.id].role)=="dealer"&&nextGo==true)
         {
-            //if deck is empty start a new deck and emit newgame to sockets
-            // if (deckPos==52)
-            // {
-            //     console.log("NOIDWIONDWOIN")
-            //     deck = shuffle(cards);
-            //     var currentCard= deck[deck.length-1];
-            //     var currentImg = img[img.length-1];
-            //     deck.pop();
-            //     img.pop();
-            //     playedCards = [];
-            //     playedImgs = [];
-            //     io.emit('newGame')
-            // }
-            // else
-            // {
+  
                 if(deckPos<53){
                 
                 guessNumber=1;
@@ -526,14 +535,21 @@ io.sockets.on('connection', function(socket){
     })
 
     socket.on('disconnect',function(){
-        players.splice((PLAYER_LIST[socket.id].id-1),1)
+        if (players.length<=2){
+            players=[];
+        }
+        else{
+            players.splice((PLAYER_LIST[socket.id].id-1),1)
+        }
         
 
         if ((PLAYER_LIST[socket.id].role)=="dealer")
         {
-            //players[(PLAYER_LIST[socket.id].id)-1].role = "dealer";
+            
             if (players.length>0){
-                // NextDealer();
+                //NextDealer();
+                PLAYER_LIST[players[0]].role = "dealer";
+                
             }
         }
         else if((PLAYER_LIST[socket.id].role)=="guesser")
@@ -541,11 +557,17 @@ io.sockets.on('connection', function(socket){
             if (players.length>1)
             {
              //NextGuesser();
+             PLAYER_LIST[players[1]].role = "guesser";
             }
         }
 
         delete SOCKET_LIST[socket.id];
         delete PLAYER_LIST[socket.id];
+
+        if(PLAYER_LIST.length==0){
+            player=[];
+        }
+
         io.emit("playerChange",{players:players,guesserPos:guesserPos,dealerPos:dealerPos})
     });
    

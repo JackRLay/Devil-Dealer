@@ -1,42 +1,89 @@
 var schemas = require("./schemas");
 
+var cardsPlayedNo= 0
+var cards =    ["2","2","2","2",
+                "3","3","3","3",
+                "4","4","4","4",
+                "5","5","5","5",
+                "6","6","6","6",
+                "7","7","7","7",
+                "8","8","8","8",
+                "9","9","9","9",
+                "10","10","10","10",
+                "11","11","11","11",
+                "12","12","12","12",
+                "13","13","13","13",
+                "14","14","14","14"
+             ]
 
-function deal() {
-    // Initialise the deck.
-    var cards = new Array();
-    for (i=0; i<52; i++) {
-        cards.push(i+1);
-    }
+var img =   ["1","2","3","4"
+            ,"5","6","7","8"
+            ,"9","10","11","12"
+            ,"13","14","15","16"
+            ,"17","18","19","20"
+            ,"21","22","23","24"
+            ,"25","26","27","28"
+            ,"29","30","31","32"
+            ,"33","34","35","36"
+            ,"37","38","39","40"
+            ,"41","42","43","44"
+            ,"45","46","47","48"
+            ,"49","50","51","52"]
 
-    // Shuffle the cards - shuffle algorithm from Donald Knuth.
-    for (i=cards.length-1; i>0; i--) {
-        var j = Math.floor(Math.random() * i);
-        var temp = cards[j];
-        cards[j] = cards[i];
-        cards[i] = temp;
-    }
+function shuffle(array) {
+    var i = array.length,
+    j = 0,
+    temp;
+    
 
-    // Return the cards.
-    return cards;
+
+    while (i--) {
+
+        j = Math.floor(Math.random() * (i+1));
+
+        // swap randomly chosen element with current element
+        temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+
+        temp = img[i];
+        img[i] = img[j];
+        img[j] = temp;
+        
 }
 
+return array;}
 
-async function newGame() {
-    // Deal the cards.
-    var cards = deal();
-
-    // Initialise a new game.
-    var game = new schemas.Game({
-        gameId: 0,      // TODO: Fix this.
-        player1: cards.slice(0, 26),
-        player2: cards.slice(26, 52),
-        mainPile: []
-    });
-
-    // Save the game then return it.
-    await game.save();
-    return game;
+function NextCard(){
+    playedCards[cardsPlayedNo]= currentCard;
+    playedImgs[cardsPlayedNo] = currentImg;
+    currentCard= deck[deck.length-1];
+    currentImg = img[img.length-1];
+    deckPos++;
+    deck.pop();
+    img.pop();   
+    console.log(deckPos)
+    
 }
 
+function NewGame(){
+    deck = [];     
+    deck = shuffle(cards);
+    currentCard= deck[deck.length-1];
+    currentImg = img[img.length-1];
+    deck.pop();
+    img.pop();
+    playedCards = [];
+    playedImgs = [];
+    cardsPlayedNo= 0
+    deckPos=1;
+    nextGo= false;
+    guessNumber=1;
+    incorrectGuesses=0;
+    gameOver=false;
 
-module.exports.newGame = newGame;
+ }
+
+ module.exports.NewGame= NewGame;
+module.exports.NextCard = NextCard;
+module.exports.shuffle= shuffle;
