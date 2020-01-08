@@ -1,7 +1,7 @@
 var schemas = require("./schemas");
 
-async function getCard(id){
-    await schemas.Card.findOne({"id": id});
+async function getCard(id) {
+    return await schemas.Card.findOne({"id": id});
 }
 
-module.exports.getCard= getCard;
+module.exports.getCard = getCard;
