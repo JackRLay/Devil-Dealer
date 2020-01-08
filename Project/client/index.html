@@ -1,329 +1,117 @@
- 
 <html>
  <head>
      <title>Devil Dealer</title>
 
-     <style>
-     
-</style>
-
-<<style type="text/css">
-body {
-    background-color: #248f24;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-}
-header {
-    background-color: #ffffff;
-    padding: 10px;
-    margin: 0;
-}
-label {
-    color: #ffffff;
-}
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
-.tg .tg-ewpk{background-color:#c3b29d;color:#333333;border-color:#000000;text-align:left;vertical-align:top}
-.tg .tg-t9f3{background-color:#c19a6b;color:#333333;border-color:#000000;text-align:left;vertical-align:top}
-.tg .tg-ams7{font-style:italic;background-color:#c3b29d;color:#333333;border-color:#000000;text-align:left;vertical-align:top}
-.tg .tg-3pjd{background-color:#c3b29d;color:#fe0000;border-color:#000000;text-align:left;vertical-align:top}
-.tg .tg-95pb{background-color:#c19a6b;color:#333333;border-color:#000000;text-align:center;vertical-align:top}
-.cardTab{table-layout:fixed; width:100px;height:165px}
-img {
-    max-width: 100%;
-    max-height: 100%; 
-}
-.currentCard{
-    float:left; 
-    width:200px;
-    height:330
-}
-.drinks{
- 
-}
-.output{
-    
-}
-</style>
+<link rel = "stylesheet" href="/client/style.css">
 
     </head>
     <body>
+        
+            
+
+        </div>
         <header>
-            <h1> Devil Dealer</h1>
+            <h1 id="head"> </h1>
         </header>
 
  
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-<script>
-    
-    var displaying= false;
-    var socket = io();
-    var card= document.createElement("img");
-    var guessText= document.createElement("P");
-    var playerList= document.createElement("P");
-    var guesser= document.createElement("P");
-    var dealer= document.createElement("P");
-    var drinkText = document.createElement("P");
-    var players= [];
-    var secondGuess=[];
-    var cardsPlayed=[];
-    
-    socket.on('currentCard', function(data){
-        
-        console.log(data.texts);
-        console.log(data.text2);
-        
-        
-
-        if (displaying==false)
-        {
-        
-        card.src = "http://localhost:9000/card/"+data.text2;
-        document.getElementById("currentCard").appendChild(card);       
-        displaying = true;
-        }
-        else if (displaying==true)
-        {
-            card.src = "http://localhost:9000/card/53";
-            document.getElementById("currentCard").appendChild(card); 
-
-            displaying =false;
-        }
-
-        
-    })
-    socket.on('secondWrong', function(data){
-    
-        console.log(data.currentCard)
-        secondGuess= data.guessNum;
-        currentCard= data.currentCard;
-
-        guessText.innerText= "Guesser guessed:"+secondGuess+"\n Incorrect!\n The card was: ";
-        document.getElementById("output").appendChild(guessText)
-        card.src = "http://localhost:9000/card/"+currentCard;
-        document.getElementById("currentCard").appendChild(card);  
-
-
-
-    })
-    socket.on('gotIt', function(data){
-  
-        currentImg= data.currentImg;
-        currentCard= data.currentCard;
-
-        guessText.innerText= "Guesser guessed:"+currentCard+"\n Correct!";
-        document.getElementById("output").appendChild(guessText)
-
-        card.src = "http://localhost:9000/card/"+currentImg;
-        document.getElementById("currentCard").appendChild(card);  
-
-
-    })
-
-    socket.on('notYourGo', function(data){
-        alert("It is not your turn. Your role is: "+data.role);
-    })
-
-    socket.on('nextTurn',function(data){
-        card.src = "http://localhost:9000/card/53";
-            document.getElementById("currentCard").appendChild(card);
-            socket.emit("updateReq");
-            var playedCards = data.playedCards;
-            console.log(data.playedCards);
-
-            //get every played card and display on screen
-            for (let i = 0; i < playedCards.length; i++) {
-                var currentCard= playedCards[i];
-                
-                var cardToDisp= document.createElement("img");              
-                
-                cardToDisp.src = "http://localhost:9000/card/"+currentCard;
-
-                             
-                document.getElementById(currentCard).appendChild(cardToDisp);  
-
-            }
-            //reset game information labels
-            drinkText.innerText= "";
-         document.getElementById("drinks").appendChild(drinkText);
-            guessText.innerText= "";
-            document.getElementById("output").appendChild(guessText)
-        })
-
-    socket.on('newGame',function(){
-        //code for starting a new game
-        //delete cards on screen
-        //can keep same guesser and dealer
-        var images= document.getElementsByTagName('img');
-        for (let index = 0; index < images.length; index++) {
-            //clear table on new game
-            images[0].parentNode.removeChild(images[0]);
-            //document.getElementById(num).appendChild("");
-            
-        }
-    })
-
-    socket.on('drinks', function(data){
-        var drinker= data.drinker;
-        var drinks= data.drinksNum;
-
-        drinkText.innerText= "Player: "+drinker+" must consume: "+drinks+" times";
-
-        document.getElementById("drinks").appendChild(drinkText);
-        
-    })
-
-    socket.on('welcomeEmit', function(data){       
-         document.getElementById('player').innerHTML = "Welcome: "+data.name+". Your role is: "+data.role;
-    })
-    
-    socket.on('guessWrong', function(data){
-        console.log(data.guessNum, data.result)
-        
-         guessText.innerText= "Guesser guessed:"+data.guessNum+"\n Incorrect!\n The card is "+data.result;
-         document.getElementById("output").appendChild(guessText)
-    })
-
-    socket.on('playerChange', function(data){
-         players= data.players;
-         guesserPos= data.guesserPos-1;
-         console.log(guesserPos)
-        var guesserName= players[guesserPos];
-        console.log(guesserName);
-         dealerPos= data.dealerPos-1;
-         console.log(dealerPos)
-        var dealerName= players[dealerPos];
-
-        document.getElementById('listPlayers').innerHTML = "Players in game: "+players;
-        document.getElementById('guesser').innerHTML = "Guesser: "+guesserName;
-        document.getElementById('dealer').innerHTML = "Dealer: "+dealerName;
-        
-    })
-    socket.on('update', function(){
-        socket.emit('updateReq');
-        
-    })
-
-    socket.on('badInput',function(data){
-        alert(data.text+" is not a valid guess. Please enter a number between 2-10 or the name of a face card");
-    })
-
-    function nextCard(){
-        socket.emit("getNextCard")
-        displaying=false;
-        
-
-    }
-
-
-    function guess(){
-        var text =document.getElementById("textBox").value;
-        socket.emit("guess",{text:text})
-    }
-
-    function displayCard(){
-        socket.emit("display");
-    }
-
-    function restart(){
-        socket.emit("restart");
-    }
-    
-
-</script>
+<script src="/client/script.js"></script>
 
 <label id="player"> </label><br/>
 
 <input id ="textBox" type="text"/>
-<button onclick="guess()">GUESSER: Guess</button><br/>
-<button onclick="displayCard()">DEALER: Show Card</button>
+<div class="divider"></div>
+<button onclick="displayCard()">DEALER: Show Card</button><br/>
+<button onclick="guess()">GUESSER: Guess</button>
+<div class="divider"></div>
 <button onclick="nextCard()">DEALER: Next Card</button><br/>
 <label id="listPlayers"> </label><br/>
 <label id="dealer"> </label><br/>
 <label id="guesser"> </label><br/>
 <label class="output" id="output"></label><br/>
 <label class="drinks" id="drinks"></label><br/>
-<table style ="float:left" class="tg">
+<table style ="float:left" class="tab">
     <tr>
-      <th class="tg-ams7"></th>
-      <th class="tg-ams7" class="tg-ewpk">2</th>
-      <th class="tg-ewpk">3</th>
-      <th class="tg-ewpk">4</th>
-      <th class="tg-ewpk">5</th>
-      <th class="tg-ewpk">6</th>
-      <th class="tg-ewpk">7</th>
-      <th class="tg-ewpk">8</th>
-      <th class="tg-ewpk">9</th>
-      <th class="tg-ewpk">10</th>
-      <th class="tg-ewpk">J</th>
-      <th class="tg-ewpk">Q</th>
-      <th class="tg-ewpk">K</th>
-      <th class="tg-ewpk">A</th>
+      <th class="blank"></th>
+      <th class="top">2</th>
+      <th class="top">3</th>
+      <th class="top">4</th>
+      <th class="top">5</th>
+      <th class="top">6</th>
+      <th class="top">7</th>
+      <th class="top">8</th>
+      <th class="top">9</th>
+      <th class="top">10</th>
+      <th class="top">J</th>
+      <th class="top">Q</th>
+      <th class="top">K</th>
+      <th class="top">A</th>
     </tr>
     <tr>
-      <td class="tg-3pjd">H</td>
-      <td class="cardTab g-t9f3" id="3" ></td>
-      <td class="cardTab g-t9f3" id="8" ></td>
-      <td class="cardTab g-t9f3" id="11" ></td>     
-      <td class="cardTab g-t9f3" id="15" ></td>
-      <td class="cardTab g-t9f3" id="19" ></td>
-      <td class="cardTab g-t9f3" id="23" ></td>
-      <td class="cardTab g-t9f3" id="27" ></td>
-      <td class="cardTab g-t9f3" id="31" ></td>
-      <td class="cardTab g-t9f3" id="35" ></td>
-      <td class="cardTab g-t9f3" id="38" ></td>
-      <td class="cardTab g-t9f3" id="44" ></td>
-      <td class="cardTab g-t9f3" id="48" ></td>
-      <td class="cardTab g-t9f3" id="50" ></td>
+      <td class="red">♥</td>
+      <td class="cardTab norm" id="3" ></td>
+      <td class="cardTab norm" id="8" ></td>
+      <td class="cardTab norm" id="11" ></td>     
+      <td class="cardTab norm" id="15" ></td>
+      <td class="cardTab norm" id="19" ></td>
+      <td class="cardTab norm" id="23" ></td>
+      <td class="cardTab norm" id="27" ></td>
+      <td class="cardTab norm" id="31" ></td>
+      <td class="cardTab norm" id="35" ></td>
+      <td class="cardTab norm" id="38" ></td>
+      <td class="cardTab norm" id="44" ></td>
+      <td class="cardTab norm" id="48" ></td>
+      <td class="cardTab norm" id="50" ></td>
       
     </tr>
     <tr>
-      <td class="tg-3pjd">D</td>
-      <td class="cardTab g-t9f3" id="2" ></td>
-      <td class="cardTab g-t9f3" id="6" ></td>
-      <td class="cardTab g-t9f3" id="10"></td>
-      <td class="cardTab g-t9f3" id="14" ></td>
-      <td class="cardTab g-t9f3" id="18" ></td>
-      <td class="cardTab g-t9f3" id="22" ></td>
-      <td class="cardTab g-t9f3" id="26" ></td>
-      <td class="cardTab g-t9f3" id="30" ></td>
-      <td class="cardTab g-t9f3" id="34" ></td>
-      <td class="cardTab g-t9f3" id="39" ></td>
-      <td class="cardTab g-t9f3" id="42" ></td>
-      <td class="cardTab g-t9f3" id="47" ></td>
-      <td class="cardTab g-t9f3" id="51" ></td>
+      <td class="red">♦</td>
+      <td class="cardTab norm" id="2" ></td>
+      <td class="cardTab norm" id="6" ></td>
+      <td class="cardTab norm" id="10"></td>
+      <td class="cardTab norm" id="14" ></td>
+      <td class="cardTab norm" id="18" ></td>
+      <td class="cardTab norm" id="22" ></td>
+      <td class="cardTab norm" id="26" ></td>
+      <td class="cardTab norm" id="30" ></td>
+      <td class="cardTab norm" id="34" ></td>
+      <td class="cardTab norm" id="39" ></td>
+      <td class="cardTab norm" id="42" ></td>
+      <td class="cardTab norm" id="47" ></td>
+      <td class="cardTab norm" id="51" ></td>
     </tr>
     <tr>
-      <td class="tg-ewpk">S</td>
-      <td class="cardTab g-t9f3" id="4" ></td>
-      <td class="cardTab g-t9f3" id="7" ></td>
-      <td class="cardTab g-t9f3" id="12" ></td>
-      <td class="cardTab g-t9f3" id="16" ></td>
-      <td class="cardTab g-t9f3" id="20" ></td>
-      <td class="cardTab g-t9f3" id="24" ></td>
-      <td class="cardTab g-t9f3" id="28" ></td>
-      <td class="cardTab g-t9f3" id="32" ></td>
-      <td class="cardTab g-t9f3" id="36" ></td>
-      <td class="cardTab g-t9f3" id="37" ></td>
-      <td class="cardTab g-t9f3" id="43" ></td>
-      <td class="cardTab g-t9f3" id="45" ></td>
-      <td class="cardTab g-t9f3" id="52" ></td>
+      <td class="top">♠</td>
+      <td class="cardTab norm" id="4" ></td>
+      <td class="cardTab norm" id="7" ></td>
+      <td class="cardTab norm" id="12" ></td>
+      <td class="cardTab norm" id="16" ></td>
+      <td class="cardTab norm" id="20" ></td>
+      <td class="cardTab norm" id="24" ></td>
+      <td class="cardTab norm" id="28" ></td>
+      <td class="cardTab norm" id="32" ></td>
+      <td class="cardTab norm" id="36" ></td>
+      <td class="cardTab norm" id="37" ></td>
+      <td class="cardTab norm" id="43" ></td>
+      <td class="cardTab norm" id="45" ></td>
+      <td class="cardTab norm" id="52" ></td>
     </tr>
     <tr>
-      <td class="tg-ewpk">C</td>
-      <td class="cardTab g-t9f3" id="1" ></td>
-      <td class="cardTab g-t9f3" id="5" ></td>
-      <td class="cardTab g-t9f3" id="9" ></td>
-      <td class="cardTab g-t9f3" id="13" ></td>
-      <td class="cardTab g-t9f3" id="17" ></td>
-      <td class="cardTab g-t9f3" id="21" ></td>
-      <td class="cardTab g-t9f3" id="25" ></td>
-      <td class="cardTab g-t9f3" id="29" ></td>
-      <td class="cardTab g-t9f3" id="33" ></td>
-      <td class="cardTab g-t9f3" id="40" ></td>
-      <td class="cardTab g-t9f3" id="41" ></td>
-      <td class="cardTab g-t9f3" id="46" ></td>
-      <td class="cardTab g-t9f3" id="49" ></td>
+      <td class="top">♣</td>
+      <td class="cardTab norm" id="1" ></td>
+      <td class="cardTab norm" id="5" ></td>
+      <td class="cardTab norm" id="9" ></td>
+      <td class="cardTab norm" id="13" ></td>
+      <td class="cardTab norm" id="17" ></td>
+      <td class="cardTab norm" id="21" ></td>
+      <td class="cardTab norm" id="25" ></td>
+      <td class="cardTab norm" id="29" ></td>
+      <td class="cardTab norm" id="33" ></td>
+      <td class="cardTab norm" id="40" ></td>
+      <td class="cardTab norm" id="41" ></td>
+      <td class="cardTab norm" id="46" ></td>
+      <td class="cardTab norm" id="49" ></td>
     </tr>
   </table>
 <div class="currentCard" id="currentCard"></div>
