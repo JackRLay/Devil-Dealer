@@ -114,13 +114,17 @@ var img =   ["1","2","3","4"
                 guessNumber=1;
                 incorrectGuesses=0;
                 gameOver=false;
-                
+
                 io.emit('newGame')
              }
 
             function NextDealer(){
                 //if the dealer position is the last player
-                
+                console.log(players);
+                console.log(PLAYER_LIST);
+                console.log(dealerPos);
+                PLAYER_LIST[dealerPos].role="guesser";
+
                 if (dealerPos==players.length)
                 {
                     dealerPos=1;
@@ -129,7 +133,9 @@ var img =   ["1","2","3","4"
                     dealerPos++
                 }
                 nextDealer= players[dealerPos];
-                PLAYER_LIST[dealerPos-1].role="dealer";
+                console.log(nextDealer)
+                PLAYER_LIST[dealerPos].role="dealer";
+                io.emit("playerChange",{players:players,guesserPos:guesserPos,dealerPos:dealerPos})
                 
             }
             
@@ -227,13 +233,12 @@ var nextGo= false;
 function NextCard(){
     playedCards[cardsPlayedNo]= currentCard;
     playedImgs[cardsPlayedNo] = currentImg;
-    console.log("nextcard")
-
     currentCard= deck[deck.length-1];
     currentImg = img[img.length-1];
-
+    deckPos++;
     deck.pop();
     img.pop();   
+    console.log(deckPos)
     
 }
 
@@ -291,50 +296,45 @@ io.sockets.on('connection', function(socket){
 
     socket.on('guess', function(data){
         
-        if (PLAYER_LIST[socket.id].role=="guesser"&&nextGo==false){
+        if (PLAYER_LIST[socket.id].role=="guesser"&&nextGo==false&&gameOver==false){
         console.log(data.text);
         
 
         
         var validInput = false;
 
-  
-        // //converting names of cards to its number
-        if (data.text == "A")
-        {
-            guessNum= 14;
-            validInput = true;
-            console.log("workeda");
-            console.log(guessNum);
-        }
-        else if (data.text == "K")
-        {
-            guessNum= 13;
-            validInput = true;
-            console.log("workedk");
-        }
-        else if (data.text == "Q")
-        {
-            guessNum= 12;
-            validInput = true;
-            console.log("workedq");
-        }
-        else if (data.text == "J")
-        {
-            guessNum= 11;
-            validInput = true;
-            console.log("workedj");
-        }
-
-       // input validation
+         // input validation
         //finally check for a valid number between 2-14 in case card number is entered for face card
-        else if (data.text>1 && data.text<15);
+        if (data.text>1 && data.text<15)
         {
             //convert entered string to a number
             guessNum = data.text;
             validInput = true;
+            console.log("1")
 
 
+        }
+        // //converting names of cards to its number
+        else if (data.text == "A"||data.text == "a"||data.text == "Ace"||data.text == "ace")
+        {
+            guessNum= 14;
+            validInput = true;
+
+        }
+        else if (data.text == "K"||data.text == "k"||data.text == "King"||data.text == "king")
+        {
+            guessNum= 13;
+            validInput = true;
+        }
+        else if (data.text == "Q"||data.text == "q"||data.text == "Queen"||data.text == "queen")
+        {
+            guessNum= 12;
+            validInput = true;
+        }
+        else if (data.text == "J"||data.text == "j"||data.text == "Jack"||data.text == "jack")
+        {
+            guessNum= 11;
+            validInput = true;
         }
 
 
@@ -344,6 +344,7 @@ io.sockets.on('connection', function(socket){
 
         //only continue if a valid input was entered
         if(validInput == true){
+            console.log("2")
 
         //check entered value
 
@@ -413,7 +414,7 @@ io.sockets.on('connection', function(socket){
             {
                 //PLAYER_LIST[dealerPos-1].role="player";
                 console.log("changed dealer")
-               // NextDealer();
+                NextDealer();
             }
 
         }
@@ -449,18 +450,25 @@ io.sockets.on('connection', function(socket){
 
                 }
             }
+            
             drinker=players[dealerPos-1];
             io.emit("drinks",{drinksNum:numDrinks, drinker:drinker})
 
             io.emit('gotIt',{currentCard:currentCard, currentImg:currentImg});
-            
+            validInput=false;
            
     }
+    NextGuesser();
 }   
-        }
+            if(validInput==false){
+                  socket.emit("badInput",{input:data.text});
+            }
+    }
+        
         else{
-            console.log("not your go");
-            console.log(PLAYER_LIST[socket.id].role);
+            var thisRole= PLAYER_LIST[socket.id].role;
+            socket.emit("notYourGo",{role:thisRole})
+            
         }
         io.emit("update");
     })
@@ -492,9 +500,8 @@ io.sockets.on('connection', function(socket){
             // }
             // else
             // {
-                if(deckPos<52){
-                gameOver=true;
-                console.log("i got called")
+                if(deckPos<53){
+                
                 guessNumber=1;
                 NextCard();
                 socket.emit("currentCard", {texts:currentCard,text2:currentImg});
@@ -503,10 +510,14 @@ io.sockets.on('connection', function(socket){
 
                 
             }
+
+            else if(deckPos>=53){
+                gameOver=true;
+            }
         }
         
         else{
-            socket.emit("notYou")
+            socket.emit("notYourGo",{role:PLAYER_LIST[socket.id].role})
         }
     })
 

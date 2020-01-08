@@ -120,6 +120,10 @@ img {
 
     })
 
+    socket.on('notYourGo', function(data){
+        alert("It is not your turn. Your role is: "+data.role);
+    })
+
     socket.on('nextTurn',function(data){
         card.src = "http://localhost:9000/card/53";
             document.getElementById("currentCard").appendChild(card);
@@ -132,8 +136,6 @@ img {
                 var currentCard= playedCards[i];
                 
                 var cardToDisp= document.createElement("img");              
-
-                console.log("THIS"+currentCard);
                 
                 cardToDisp.src = "http://localhost:9000/card/"+currentCard;
 
@@ -200,6 +202,10 @@ img {
     socket.on('update', function(){
         socket.emit('updateReq');
         
+    })
+
+    socket.on('badInput',function(data){
+        alert(data.text+" is not a valid guess. Please enter a number between 2-10 or the name of a face card");
     })
 
     function nextCard(){
