@@ -3,16 +3,55 @@
      <title>Devil Dealer</title>
 
 <link rel = "stylesheet" href="/client/style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
 
     </head>
     <body>
+        <div id="mocha"></div>
+    
+        <script src="https://unpkg.com/chai/chai.js"></script>
+        <script src="https://unpkg.com/mocha/mocha.js"></script>
+    
+        <script class="mocha-init">
+            mocha.setup('tdd');
+            mocha.checkLeaks();
+        </script>
         
-            
+        <script src="/client/Tests.js"></script>
+        
+        <script class="mocha-exec">
+            mocha.run();
+        </script>
 
+        <div class="navigationbar"> 
+            
+            <a class="buttons"> DEVIL DEALER</a>
+            <a href="#" id="btn" class="buttons">○ HELP </a>
+          
         </div>
-        <header>
-            <h1 id="head"> </h1>
-        </header>
+
+
+<div id="modal" class="modal">
+
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <b>What Is Devil Dealer?</b>
+      <p>Devil dealer is a party drinking game where players take turns guessing
+          the card in the dealers hand (2-14 with ace high). The guesser gets two guesses- after the first guess
+          they are told if the dealer's card is higher or lower. If the card is correctly guessed
+          the dealer must drink their beverage, and if the card is not guessed the guesser must drink.
+          The trick to this game however is that after a card is played it is displayed on the table for
+          all to see, thus narrowing down the amount of cards to guess. Towards the end of the game the 
+          dealer role becomes a losing battle as it gets very easy to guess the card.
+          </p><br/>
+        <b>Drink Distribution</b>
+        <p>If the dealer's card is guessed first time: the dealer drinks the number of the card in sips</p>
+        <p>If the dealer's card is guessed second time: the dealer drinks the difference between the two guesses</p>
+        <p>If the guesser does not guess the card: the guesser drinks the difference between their second guess and the dealers card</p>
+    </div>
+  
+  </div>
 
  
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
@@ -20,7 +59,7 @@
 
 <label id="player"> </label><br/>
 
-<input id ="textBox" type="text"/>
+<input style="text-align:center" id ="textBox" type="text"/>
 <div class="divider"></div>
 <button onclick="displayCard()">DEALER: Show Card</button><br/>
 <button onclick="guess()">GUESSER: Guess</button>
@@ -114,8 +153,9 @@
       <td class="cardTab norm" id="49" ></td>
     </tr>
   </table>
+  <button onclick="restart()">Restart Game</button><br/>
 <div class="currentCard" id="currentCard"></div>
-<button onclick="restart()">Restart Game</button><br/>
+
 
 </body>
 </html>
